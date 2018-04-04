@@ -8,8 +8,9 @@ const app = express();
 const server = http.Server(app);
 const io = require("socket.io")(server);
 
+const URI = process.env.MONGODB_URI || "mongodb://localhost/marino";
 const PORT = process.env.PORT || 4000;
-mongoose.connect("mongodb://localhost/marino");
+mongoose.connect(URI);
 
 
 io.on("connection", (socket) => {
