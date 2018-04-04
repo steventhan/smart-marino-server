@@ -1,6 +1,7 @@
 const express = require("express");
 const http = require("http");
 const mongoose = require("mongoose");
+const path = require("path");
 
 const api = require("./api");
 const Machine = require("./models/Machine");
@@ -38,5 +39,6 @@ app.use(express.static("./build"));
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "build/index.html"));
 });
+
 
 server.listen(PORT, () => console.log(`Server started on port ${PORT}`));
