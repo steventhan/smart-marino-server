@@ -78,7 +78,6 @@ api.get("/machines/:machineId/:date", (req, res) => {
 
       while (start < endOfDay) {
         let twentyMins = moment(start).add(20, "m");
-        console.log(isReserved(start, twentyMins, reservations));
         results.push({
           start: start.format(),
           end: twentyMins.format(),
@@ -198,27 +197,3 @@ api.delete("/reservations/:id", (req, res) => {
 });
 
 module.exports = api;
-
-  // Machine.findById(req.params.id, (err, machine) => {
-  //   if (err) {
-  //     console.log(err);
-  //     return res.sendStatus(400);
-  //   } else if (!machine) {
-  //     return res.sendStatus(404);
-  //   }
-  //   let userId = req.body.userId;
-  //   let date = req.body.date;
-  //   let timeSlots = req.body.timeSlots.map((s, i) => {
-  //     if (s) {
-  //       return userId;
-  //     }
-  //   });
-  //   // if (!machine[date]) {
-  //   //   machine[date] =
-  //   //
-  //   // }
-  //   return res.send(machine);
-  //
-  //
-  //   // req.io.emit("machines", machines);
-  // })
