@@ -12,7 +12,7 @@ api.use(jsonParser);
 
 
 api.use((req, res, next) => {
-  if (!req.query.userId && !req.body.userId) {
+  if (!req.query.user && !req.body.user) {
     return res.sendStatus(400);
   }
   next();
@@ -49,6 +49,48 @@ api.post("/machines", (req, res) => {
 });
 
 
+let isReserved = (start, end, reservations) => {
+  return reservations.reduce((acc, cur) => {
+    let rezStart = moment(cur.start);
+    let rezEnd = moment(cur.end);
+    return (start >= rezStart && start < rezEnd)
+            || (end > rezStart && end <= rezStart) || acc;
+  }, false);
+}
+
+
+api.get("/machines/:machineId/:date", (req, res) => {
+  let startOfDay = moment(req.params.date).startOf("day");
+  let endOfDay = moment(req.params.date).endOf("day");
+
+  Reservation.find({
+    "machine": { _id: req.params.machineId },
+    $or : [
+      { start: { $gte: startOfDay.toDate(), $lt: endOfDay.toDate() } },
+      { end: { $gt: startOfDay.toDate(), $lte: endOfDay.toDate() } },
+    ]
+  }).exec((err, reservations) => {
+      if (err) {
+        return res.sendStatus(400);
+      }
+      let results = [];
+      let start = startOfDay;
+
+      while (start < endOfDay) {
+        let twentyMins = moment(start).add(20, "m");
+        console.log(isReserved(start, twentyMins, reservations));
+        results.push({
+          start: start.format(),
+          end: twentyMins.format(),
+          reserved: isReserved(start, twentyMins, reservations)
+        });
+        start = twentyMins;
+      }
+      res.send(results);
+    });
+});
+
+
 api.get("/machines/:id", (req, res) => {
   Machine.findById(req.params.id)
     .populate("reservation")
@@ -78,17 +120,46 @@ api.get("/reservations", (req, res) => {
 
 
 api.post("/reservations", (req, res) => {
-  Reservation.create(req.body)
-    .then(rev => {
-      Reservation.populate(rev, {path: "machine"}, (err, rev) => {
-        rev.machine.reservations.push(rev);
-        rev.machine.save();
-        res.send(rev);
+  let today = moment();
+  let start = moment(req.body.start);
+  let end = moment(req.body.end)
+
+  if (start < today || end <= start) {
+    return res.status(400).send("Invalid time range");
+  }
+
+  Reservation.find({
+    "machine": { _id: req.body.machine },
+    $or: [
+      {
+        start: { $gte: start.toDate(),  $lt: end.toDate() }
+      },
+      {
+        end: { $gt: start.toDate(), $lte: end.toDate() }
+      }
+    ]
+  }, (err, reservations) => {
+    if (err) {
+      return res.sendStatus(400);
+    }
+    if (reservations.length > 0) {
+      return res.status(400).send("Time range no longer available");
+    }
+    Reservation.create({...req.body, status: "upcoming"})
+      .then(created => {
+        Reservation.populate(created, {path: "machine"}, (err, c) => {
+          if (err) {
+            res.status(400).send(err);
+          }
+          created.machine.reservations.push(c._id);
+          created.machine.save();
+          res.send(created);
+        });
       })
-    })
-    .catch(err => {
-      res.send(err);
-    })
+      .catch(err => {
+        res.send(err);
+      });
+  });
 });
 
 api.get("/reservations/:id", (req, res) => {
@@ -108,16 +179,19 @@ api.get("/reservations/:id", (req, res) => {
 api.delete("/reservations/:id", (req, res) => {
   Reservation.findOne({_id: new mongoose.Types.ObjectId(req.params.id), userId: req.body.userId})
     .populate("machine")
-    .exec((err, rev) => {
+    .exec((err, rez) => {
       if (err) {
-        return res.send(err, 400);
-      } else if (!rev) {
+        return res.status(400).send(err);
+      } else if (!rez) {
         return res.sendStatus(404);
       }
-      let index = rev.machine.reservations.indexOf(rev._id);
-      rev.machine.reservations.splice(index, 1);
-      rev.machine.save()
-      rev.remove((err, rev) => {
+      let index = rez.machine.reservations.indexOf(rez._id);
+      rez.machine.reservations.splice(index, 1);
+      rez.machine.save();
+      rez.remove((err, rez) => {
+        if (err) {
+          res.status(400).send(err);
+        }
         res.sendStatus(200);
       });
     });
