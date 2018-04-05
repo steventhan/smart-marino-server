@@ -58,8 +58,51 @@ let isReserved = (start, end, reservations) => {
   }, false);
 }
 
+api.get("/machines/:machineId/reservation", (req, res) => {
+  let now = moment();
 
-api.get("/machines/:machineId/:date", (req, res) => {
+  Reservation.findOne({
+    "machine": { _id: req.params.machineId },
+    start: { $lte: now.toDate() },
+    end: { $gte: now.toDate() },
+  }).exec((err, rez) => {
+    if (err) {
+      return res.status(400).send(err);
+    }
+    if (!rez) {
+      return res.sendStatus(404);
+    }
+    return res.send({
+      start: moment(rez.start).format(),
+      end: moment(rez.end).format(),
+      status: rez.status });
+  });
+});
+
+
+api.post("/qr", (req, res) => {
+  let now = moment();
+  console.log(req.body.machine);
+
+  Reservation.findOne({
+    "machine": { _id: req.body.machine },
+    user: req.body.user,
+    start: { $lte: now.toDate() },
+    end: { $gte: now.toDate() },
+  }).exec((err, rez) => {
+    if (err) {
+      console.log(err);
+      return res.status(400).send(err);
+    }
+    if (!rez) {
+      return res.sendStatus(404);
+    }
+    rez.status = "started";
+    rez.save((err, rez) => res.send(rez));
+  });
+});
+
+api.get("/machines/:machineId/time-slots/:date", (req, res) => {
   let startOfDay = moment(req.params.date).startOf("day");
   let endOfDay = moment(req.params.date).endOf("day");
 
