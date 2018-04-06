@@ -87,6 +87,7 @@ api.post("/qr", (req, res) => {
 
   Reservation.findOne({
     "machine": { _id: req.body.machine },
+    status: "upcoming",
     user: req.body.user,
     start: { $lte: now.toDate() },
     end: { $gte: now.toDate() },
