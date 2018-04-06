@@ -162,11 +162,11 @@ api.get("/reservations", (req, res) => {
 
 
 api.post("/reservations", (req, res) => {
-  let today = moment();
+  let now = moment().subtract(20, "m");
   let start = moment(req.body.start);
   let end = moment(req.body.end)
 
-  if (start < today || end <= start) {
+  if (start < now || end <= start) {
     return res.status(400).send("Invalid time range");
   }
 
@@ -214,6 +214,20 @@ api.get("/reservations/:id", (req, res) => {
         return res.sendStatus(404);
       }
       res.send(rev);
+    });
+});
+
+
+api.patch("/reservations/:id", (req, res) => {
+  Reservation.findOne({ _id: new mongoose.Types.ObjectId(req.params.id), userId: req.body.userId })
+    .exec((err, rez) => {
+      if (err) {
+        return res.status(400).send(err);
+      } else if (!rez) {
+        return res.sendStatus(404);
+      }
+      rez.status = req.body.status;
+      rez.save((err, saved) => res.send(saved));
     });
 });
 
