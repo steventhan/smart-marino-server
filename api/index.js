@@ -151,7 +151,7 @@ api.get("/machines/:id", (req, res) => {
 
 
 api.get("/reservations", (req, res) => {
-  Reservation.find({userId: req.query.userId})
+  Reservation.find({user: req.query.user})
     .populate("machine")
     .exec((err, rev) => {
       if (err) {
@@ -223,7 +223,7 @@ api.get("/reservations/:id", (req, res) => {
 
 
 api.patch("/reservations/:id", (req, res) => {
-  Reservation.findOne({ _id: new mongoose.Types.ObjectId(req.params.id), userId: req.body.userId })
+  Reservation.findOne({ _id: new mongoose.Types.ObjectId(req.params.id), user: req.body.user })
     .exec((err, rez) => {
       if (err) {
         return res.status(400).send(err);
@@ -237,7 +237,7 @@ api.patch("/reservations/:id", (req, res) => {
 
 
 api.delete("/reservations/:id", (req, res) => {
-  Reservation.findOne({_id: new mongoose.Types.ObjectId(req.params.id), userId: req.body.userId})
+  Reservation.findOne({_id: new mongoose.Types.ObjectId(req.params.id), user: req.body.user })
     .populate("machine")
     .exec((err, rez) => {
       if (err) {
