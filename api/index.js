@@ -55,7 +55,7 @@ let isReserved = (start, end, reservations) => {
     let rezEnd = moment(cur.end);
     return (((start >= rezStart && start < rezEnd)
             || (end > rezStart && end <= rezStart))
-            && !["ended", "abandoned"].includes(cur.status)) || acc;
+            && cur.status === "upcoming") || acc;
   }, false);
 }
 
@@ -77,14 +77,14 @@ api.get("/machines/:machineId/reservation", (req, res) => {
     return res.send({
       start: moment(rez.start).format(),
       end: moment(rez.end).format(),
-      status: rez.status });
+      status: rez.status
+    });
   });
 });
 
 
 api.post("/qr", (req, res) => {
   let now = moment();
-  console.log(req.body.machine);
 
   Reservation.findOne({
     "machine": { _id: req.body.machine },
