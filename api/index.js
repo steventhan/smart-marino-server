@@ -64,7 +64,7 @@ api.get("/machines/:machineId/reservation", (req, res) => {
 
   Reservation.findOne({
     "machine": { _id: req.params.machineId },
-    status: "upcoming",
+    status: { $or: ["upcoming", "started"] },
     start: { $lte: now.toDate() },
     end: { $gte: now.toDate() },
   }).exec((err, rez) => {
