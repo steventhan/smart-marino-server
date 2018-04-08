@@ -36,6 +36,14 @@ app.use("/api", api);
 
 app.use(express.static("./build"));
 
+app.use((req, res, next) => {
+  if (req.header("x-forwarded-proto") !== "https" && process.env.NODE_ENV === "production")
+    res.redirect(`https://${req.header("host")}${req.url}`)
+  else {
+    next();
+  }
+})
+
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "build/index.html"));
 });
