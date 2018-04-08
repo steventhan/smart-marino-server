@@ -153,6 +153,7 @@ api.get("/machines/:id", (req, res) => {
 api.get("/reservations", (req, res) => {
   Reservation.find({ user: req.query.user })
     .populate("machine")
+    .sort({ start: "asc" })
     .exec((err, rev) => {
       if (err) {
         return res.send(err, 400);
