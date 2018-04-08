@@ -151,7 +151,7 @@ api.get("/machines/:id", (req, res) => {
 
 
 api.get("/reservations", (req, res) => {
-  Reservation.find({user: req.query.user})
+  Reservation.find({ user: req.query.user })
     .populate("machine")
     .exec((err, rev) => {
       if (err) {
