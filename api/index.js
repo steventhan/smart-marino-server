@@ -21,6 +21,7 @@ api.use((req, res, next) => {
 
 api.get("/machines", (req, res) => {
   Machine.find({})
+    .sort({ _id: "asc" })
     .exec((err, machines) => {
       if (err) {
         res.sendStatus(400);
