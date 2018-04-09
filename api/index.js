@@ -242,7 +242,7 @@ api.patch("/reservations/:id", (req, res) => {
       } else if (!rez) {
         return res.sendStatus(404);
       }
-      if (req.body.code !== rez.code) {
+      if (req.body.code.toUpperCase() !== rez.code) {
         return res.status(400).send("Invalid check-in code");
       }
       if (req.body.status ) {
