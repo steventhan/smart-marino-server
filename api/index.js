@@ -19,22 +19,14 @@ api.use((req, res, next) => {
 });
 
 
-api.get("/hours", (req, res) => {
-  res.send({
-    "today": moment().format("YYYY-MM-DD"),
-    "open": "8:00",
-    "close": "1:00"
-  });
-});
-
-
 api.get("/machines", (req, res) => {
-  Machine.find({}, (err, machines) => {
-    if (err) {
-      res.sendStatus(400);
-    }
-    res.send(machines);
-  })
+  Machine.find({})
+    .exec((err, machines) => {
+      if (err) {
+        res.sendStatus(400);
+      }
+      res.send(machines);
+  });
 });
 
 
