@@ -6,7 +6,8 @@ const ReservationSchema = new Schema({
   end: { type: Date, required: true },
   machine: { type: Number, ref: "Machine", required: true },
   user: { type: String, required: true },
-  status: { type: String, required: true }
+  status: { type: String, required: true },
+  code: { type: String, required: true }
 });
 
 const Reservation = mongoose.model("Reservation", ReservationSchema);

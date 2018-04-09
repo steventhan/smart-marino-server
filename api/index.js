@@ -164,6 +164,17 @@ api.get("/reservations", (req, res) => {
     });
 });
 
+const randomCode = () => {
+  var code = "";
+  var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+
+  return code;
+}
+
 
 api.post("/reservations", (req, res) => {
   let now = moment().subtract(20, "m");
@@ -192,7 +203,7 @@ api.post("/reservations", (req, res) => {
     if (reservations.length > 0) {
       return res.status(400).send("Time range no longer available");
     }
-    Reservation.create({...req.body, status: "upcoming"})
+    Reservation.create({ ...req.body, status: "upcoming", code: randomCode() })
       .then(created => {
         Reservation.populate(created, {path: "machine"}, (err, c) => {
           if (err) {
@@ -231,7 +242,12 @@ api.patch("/reservations/:id", (req, res) => {
       } else if (!rez) {
         return res.sendStatus(404);
       }
-      rez.status = req.body.status;
+      if (req.body.code !== rez.code) {
+        return res.status(400).send("Invalid check-in code");
+      }
+      if (req.body.status ) {
+        rez.status = req.body.status;
+      }
       rez.save((err, saved) => res.send(saved));
     });
 });
