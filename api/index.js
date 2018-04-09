@@ -77,7 +77,8 @@ api.get("/machines/:machineId/reservation", (req, res) => {
     return res.send({
       start: moment(rez.start).format(),
       end: moment(rez.end).format(),
-      status: rez.status
+      status: rez.status,
+      code: rez.code
     });
   });
 });
